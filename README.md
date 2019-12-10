@@ -7,6 +7,37 @@ This repository is a final project for my Resilient Distributed Systems class. A
 - Audit system used to check processes occasionally against 2 other processes
 - Component process health monitor detects and restarts faulty processes
 
+## Directions for Running
+It's a bit of a pain to run, sorry. I didn't have quite enough time to get the code into a nice, cleanly packaged application, so here's how it goes:
+
+To run this code, you'll need three separate consoles. In the first, cd into the distributed-detection directory and run:
+
+python query_publish.py x y
+x - float - average time between sending queries (seconds)
+y - int - number of workers (controls which workers are sent queries)
+
+In the second window, cd into the distributed-detection directory and run:
+
+python im_publish.py x directory
+x - float - time between sending images (seconds)
+directory - string - path to a folder with images in it which will be iterated over and sent to workers
+
+In the third window, cd into the distributed-detection directory and run:
+python main.py
+
+
+This will run the distributed stream processing code with 4 worker processes in the normal mode. If you want to introduce faults, you'll have to go to various locations in the code and set boolean values to True. This is somewhat clunky but is all I had time for.
+- Create a faulty worker process - in worker_thread_fns.py change line 794 to True
+- Create stochastic worker deaths - in main.py, change line 280 to True
+- Create simultaneous worker deathes - in main.py, change line 274 to True
+- Create a system partition temporarily - in worker_thread_fns.py, change line 422 to True
+
+Lastly, the default configuration uses dummy work. 
+If you have pytorch and the other necessary packages installed on your machine, you can switch to real object detection work rather than dummy work by changing line 722 to False. 
+Note that in this case you'll want to run different worker processes on different machines because pytorch networks are resource intensive and it's difficult for a machine to run multiple pytorch model instances in parallel.
+For my test case, I ran 2 worker processes using 2 GPUs on the same machine. If you want to do this, change line 722 in worker_thread_fns.py to False and run main_2_workers.py
+
+
 ## Design Specification
 ### 1. System Actors
 The main actors in the system are the worker processes which perform object detection on incoming images and store results. The monitoring process is an additional actor. While the image-sender and database query clients are involved in the operation of the system, they are considered separate to the system (i.e. the system is not designed to be robust to their failure and it is assumed that they do not deviate from expected operating behavior.
